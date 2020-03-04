@@ -1,0 +1,4 @@
+*.retry
+vars/
+group_vars/
+*.key

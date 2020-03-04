@@ -1,0 +1,10 @@
+---
+- hosts: raspberry
+  roles:
+    - { role: upgrade, become: yes }
+    - { role: disks, become: yes }
+    - { role: plex, become: yes }
+    - { role: backup, become: yes }
+    - { role: monitorization, become: yes }
+
+...

@@ -1,0 +1,67 @@
+---
+- include_vars: vault.yml
+
+- name: Install required packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - samba
+    - samba-common-bin
+    - autofs
+
+- name: Mount local disks and add them to fstab
+  mount:
+    path: "/mnt/{{ item.name }}"
+    src: "UUID={{ item.uuid }}"
+    opts: "defaults,auto,users,rw,nofail"
+    state: mounted
+    fstype: "{{ item.type }}"
+  loop: "{{ local_disks }}"
+
+- name: Configure disks in samba
+  blockinfile:
+    path: /etc/samba/smb.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+    block: |
+      [{{ item.name }}]
+      Comment = {{ item.name }}
+      Path = /mnt/{{ item.name }}
+      Browseable = yes
+      Writeable = Yes
+      only guest = no
+      create mask = 0777
+      directory mask = 0777
+      Public = yes
+  loop: "{{ local_disks }}"
+
+- name: Deploy samba credentials
+  copy:
+    content: "username={{ item.username }}\npassword={{ item.password }}"
+    dest: "/home/{{ ansible_user }}/.smbcredentials_{{ item.name }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+  loop: "{{ smb_credentials }}"
+  no_log: true
+  notify: Restart autofs
+
+- name: Ensure autofs samba file exists
+  copy:
+    content: ""
+    dest: "/etc/auto.smb.shares"
+    force: no
+
+- name: Configure autofs master file
+  lineinfile:
+    path: "/etc/auto.master"
+    line: "/- /etc/auto.smb.shares --timeout 15 browse"
+  notify: Restart autofs
+
+- name: Configure autofs samba file
+  lineinfile:
+    line: "/mnt/{{ item.name }} -fstype={{ item.type }},rw,credentials={{ item.credentials }},iocharset=utf8,uid={{ ansible_user }},gid={{ ansible_user }} ://{{ item.ip }}/{{ item.name }}/"
+    path: "/etc/auto.smb.shares"
+  loop: "{{ remote_disks }}"
+  notify: Restart autofs
+...

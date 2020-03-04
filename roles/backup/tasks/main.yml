@@ -1,0 +1,13 @@
+---
+- name: Copy backup scripts and crontab
+  copy:
+    src: "{{ item.name }}"
+    dest: "{{ item.path }}"
+    mode: "0755"
+  loop:
+    - { name: backup-sync.sh, path: /usr/local/bin/ }
+    - { name: backup-compress.sh, path: /usr/local/bin/ }
+    - { name: backup-export.sh, path: /usr/local/bin/ }
+    - { name: backup-blacklist.conf, path: /usr/local/etc/ }
+    - { name: crontab, path: /var/spool/cron/crontabs/pi }
+...

@@ -1,0 +1,14 @@
+---
+- name: Prepare repository sources
+  apt_repository:
+    repo: "deb https://downloads.plex.tv/repo/deb public main"
+    filename: plexmediaserver
+
+- name: Add plex apt signing key
+  apt_key:
+    url: https://downloads.plex.tv/plex-keys/PlexSign.key
+
+- name: Install plexmediaserver
+  apt:
+    name: plexmediaserver
+...

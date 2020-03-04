@@ -1,0 +1,39 @@
+---
+- name: Add influxdb apt signing key
+  apt_key:
+    url: https://repos.influxdata.com/influxdb.key
+
+- name: Prepare influxdb repository sources
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/debian buster stable"
+    filename: influxdb
+
+- name: Install influxdb
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - influxdb
+      - influxdb-client
+
+- name: Start influxdb 
+  service:
+    name: influxdb
+    state: started
+    enabled: yes
+
+- name: Download grafana
+  get_url:
+    url: https://dl.grafana.com/oss/release/grafana_{{ grafana_version }}_armhf.deb
+    dest: /tmp/grafana.deb
+
+- name: Install grafana
+  apt:
+    deb: /tmp/grafana.deb
+
+- name: Start grafana
+  service:
+    name: grafana-server
+    state: started
+    enabled: yes
+...
