@@ -25,4 +25,4 @@
 #
 # m h  dom mon dow   command
 @hourly root flock -n /tmp/backup.lock /usr/local/bin/backup-sync.sh
-@daily  root flock    /tmp/backup.lock /usr/local/bin/backup-compress.sh
+@weekly root flock    /tmp/backup.lock /usr/local/bin/backup-compress.sh
